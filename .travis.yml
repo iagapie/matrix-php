@@ -6,7 +6,7 @@ matrix:
   include:
     - os: linux
       php: '7.2'
-      env: PHPUNIT_FLAGS="--coverage-clover build/logs/clover.xml" DISABLE_XDEBUG="true"
+      env: PHPUNIT_FLAGS="--coverage-clover build/logs/clover.xml"
 
     - os: linux
       php: '7.3'
