@@ -1,0 +1,9 @@
+version: "3.3"
+
+services:
+  php-cli:
+    build: "."
+    volumes:
+      - "${PWD}:/var/www"
+      - "${PWD}/composer/cache:/home/www-data/.composer/cache"
+    working_dir: /var/www
