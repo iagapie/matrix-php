@@ -51,7 +51,7 @@ class M
     {
         $this->rows = count($matrix);
 
-        if (MathArray::is2D($matrix)) {
+        if ($this->rows && is_array($matrix[0])) {
             $this->columns = count($matrix[0]);
 
             for ($row = 0; $row < $this->rows; ++$row) {
@@ -72,7 +72,7 @@ class M
      * @return \IA\M
      * @throws \IA\MatrixException
      */
-    public static function random(int $n, ?int $m = null): M
+    public static function random(int $n, ?int $m = null): self
     {
         if ($n < 0 || $m < 0) {
             throw new MatrixException("Negative dimensions are not allowed.");
@@ -86,7 +86,7 @@ class M
      * @return \IA\M
      * @throws \IA\MatrixException
      */
-    public static function from(array $matrix): M
+    public static function from(array $matrix): self
     {
         return new self($matrix);
     }
@@ -96,7 +96,7 @@ class M
      * @return \IA\M
      * @throws \IA\MatrixException
      */
-    public static function fromFlat(array $flatten): M
+    public static function fromFlat(array $flatten): self
     {
         return new self(array_map(function ($item) {
             return [$item];
@@ -112,7 +112,7 @@ class M
      * @return \IA\M
      * @throws \IA\MatrixException
      */
-    public static function eye(int $n, ?int $m = null, int $k = 0): M
+    public static function eye(int $n, ?int $m = null, int $k = 0): self
     {
         if ($n < 0 || $m < 0) {
             throw new MatrixException("Negative dimensions are not allowed.");
@@ -126,7 +126,7 @@ class M
      * @return \IA\M of zeros with the given shape
      * @throws \IA\MatrixException
      */
-    public static function zeros($shape): M
+    public static function zeros($shape): self
     {
         return new self(MathArray::zeros($shape));
     }
@@ -136,17 +136,19 @@ class M
      * @return \IA\M
      * @throws \IA\MatrixException
      */
-    public function dot($b): M
+    public function dot($b): self
     {
-        if ($b instanceof M) {
-            $b->toArray();
+        if ($b instanceof self) {
+            $b = $b->toArray();
         }
 
-        if ($matrix = MathArray::dot($this->matrix, $b)) {
-            return new self($matrix);
+        $result = MathArray::dot($this->matrix, $b);
+
+        if (null === $result) {
+            throw new MatrixException();
         }
 
-        throw new MatrixException();
+        return new self($result);
     }
 
     /**
@@ -154,9 +156,9 @@ class M
      * @return \IA\M
      * @throws \IA\MatrixException
      */
-    public function divide($b): M
+    public function divide($b): self
     {
-        if ($b instanceof M) {
+        if ($b instanceof self) {
             $b->toArray();
         }
 
@@ -172,9 +174,9 @@ class M
      * @return \IA\M
      * @throws \IA\MatrixException
      */
-    public function subtract($b): M
+    public function subtract($b): self
     {
-        if ($b instanceof M) {
+        if ($b instanceof self) {
             $b->toArray();
         }
 
@@ -190,9 +192,9 @@ class M
      * @return \IA\M
      * @throws \IA\MatrixException
      */
-    public function add($b): M
+    public function add($b): self
     {
-        if ($b instanceof M) {
+        if ($b instanceof self) {
             $b->toArray();
         }
 
@@ -207,7 +209,7 @@ class M
      * @return \IA\M
      * @throws \IA\MatrixException
      */
-    public function negative(): M
+    public function negative(): self
     {
         return new self(MathArray::negative($this->matrix));
     }
@@ -216,7 +218,7 @@ class M
      * @return \IA\M
      * @throws \IA\MatrixException
      */
-    public function transpose(): M
+    public function transpose(): self
     {
         return new self($this->transposed);
     }
@@ -225,7 +227,7 @@ class M
      * @return \IA\M
      * @throws \IA\MatrixException
      */
-    public function inverse(): M
+    public function inverse(): self
     {
         if (null === $this->inv) {
             if (false === $this->isSquare()) {
@@ -266,7 +268,7 @@ class M
      * @return \IA\M
      * @throws \IA\MatrixException
      */
-    public function round(int $precision = 0, int $mode = PHP_ROUND_HALF_UP): M
+    public function round(int $precision = 0, int $mode = PHP_ROUND_HALF_UP): self
     {
         return new self(MathArray::round($this->matrix, $precision, $mode));
     }

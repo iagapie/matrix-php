@@ -94,6 +94,7 @@ Temporary Items
 !/composer/cache/.htaccess
 
 /vendor/
+/build/
 
 /.phpunit.result.cache
 .phpunit

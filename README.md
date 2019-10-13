@@ -19,4 +19,5 @@ composer require iagapie/matrix-php:dev-master
 <!---
 # docker-compose run --rm php-cli composer install
 # docker-compose run --rm php-cli vendor/bin/phpunit
+# docker-compose run --rm php-cli vendor/bin/php-coveralls -v
 -->

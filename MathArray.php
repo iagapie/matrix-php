@@ -36,6 +36,7 @@ final class MathArray
                     }
 
                     $sign = (-1) ** ($i % 2);
+
                     $sub = static::determinant($as);
 
                     $determinant += $sign * $matrix[0][$i] * $sub;
@@ -53,6 +54,7 @@ final class MathArray
     public static function inverse(array $matrix): array
     {
         $rows = count($matrix);
+
         $im = static::eye($rows);
 
         for ($i = 0; $i < $rows; ++$i) {
@@ -78,6 +80,11 @@ final class MathArray
         return $im;
     }
 
+    /**
+     * @param array $matrix
+     * @param callable $callable
+     * @return array
+     */
     public static function map(array $matrix, callable $callable): array
     {
         $rows = count($matrix);
@@ -127,6 +134,12 @@ final class MathArray
         return $matrix;
     }
 
+    /**
+     * @param int $n
+     * @param int|null $m
+     * @param int $k
+     * @return array
+     */
     public static function eye(int $n, ?int $m = null, int $k = 0): array
     {
         if (null === $m) {
@@ -142,74 +155,127 @@ final class MathArray
         return $matrix;
     }
 
+    /**
+     * @param array|int $shape
+     * @return array
+     */
     public static function zeros($shape): array
     {
-        list($rows, $columns) = (array) $shape;
+        $shape = (array) $shape;
 
-        $row = array_fill(0, $columns ?? $rows, 0);
+        $rows = $shape[0] ?? 0;
+        $columns = $shape[1] ?? null;
 
-        return $columns ? array_fill(0, $rows, $row) : $row;
+        return static::fill($rows, $columns, 0);
     }
 
-    public static function dot(array $a, $b): ?array
+    /**
+     * @param array $a1
+     * @param mixed $a2
+     * @return array|null
+     */
+    public static function dot(array $a1, $a2): ?array
     {
-        if (is_array($b)) {
-            $b = static::transpose($b);
-
-            return static::is2D($a) ? static::multiply2DWithTransposed($a, $b) : static::multiply1DWithTransposed($a, $b);
+        if (is_numeric($a2)) {
+            return static::m($a1, $a2);
         }
 
-        if (is_numeric($b)) {
-            return static::multiplyByScalar($a, $b);
+        if (false === is_array($a2)) {
+            return null;
         }
 
-        return null;
+        $a2d = static::is2D($a1);
+        $b2d = static::is2D($a2);
+
+        if (false === $a2d) {
+            $a1 = [$a1];
+        }
+
+        if (false === $b2d) {
+            $a2 = array_chunk($a2, 1);
+        }
+
+        $columnsA = count($a1[0]);
+
+        if ($columnsA !== count($a2)) {
+            return null;
+        }
+
+        $rowsA = count($a1);
+        $columnsB = count($a2[0]);
+
+        $result = [];
+
+        for ($cb = 0; $cb < $columnsB; ++$cb) {
+            for ($ra = 0; $ra < $rowsA; ++$ra) {
+                $tmp = 0;
+
+                for ($ca = 0; $ca < $columnsA; ++$ca) {
+                    $tmp += $a1[$ra][$ca] * $a2[$ca][$cb];
+                }
+
+                $result[$ra][$cb] = $tmp;
+            }
+        }
+
+        if (false === $a2d || false === $b2d) {
+            $result = static::flatten($result);
+        }
+
+        return $result;
     }
 
-    public static function divide(array $a, $b): ?array
+    /**
+     * @param array $a1
+     * @param mixed $a2
+     * @return array|null
+     */
+    public static function divide(array $a1, $a2): ?array
     {
-        if (is_array($b)) {
+        if (is_array($a2)) {
             // TODO
         }
 
-        if (is_scalar($b)) {
-            return static::divideByScalar($a, $b);
+        if (is_scalar($a2)) {
+            return static::m($a1, 1 / $a2);
         }
 
         return null;
     }
 
-    public static function subtract(array $a, $b): ?array
+    /**
+     * @param array $a1
+     * @param mixed $a2
+     * @return array|null
+     */
+    public static function subtract(array $a1, $a2): ?array
     {
-        if (is_array($b)) {
-            // TODO
-        }
-
-        if (is_scalar($b)) {
-            return static::subtractByScalar($a, $b);
-        }
-
-        return null;
+        return static::a($a1, $a2, -1);
     }
 
-    public static function add(array $a, $b): ?array
+    /**
+     * @param array $a1
+     * @param mixed $a2
+     * @return array|null
+     */
+    public static function add(array $a1, $a2): ?array
     {
-        if (is_array($b)) {
-            // TODO
-        }
-
-        if (is_scalar($b)) {
-            return static::addByScalar($a, $b);
-        }
-
-        return null;
+        return static::a($a1, $a2, 1);
     }
 
+    /**
+     * @param array $matrix
+     * @return array
+     */
     public static function negative(array $matrix): array
     {
-        return static::multiplyByScalar($matrix, -1);
+        return static::m($matrix, -1);
     }
 
+    /**
+     * @param array $matrix
+     * @return array
+     */
     public static function transpose(array $matrix): array
     {
         $transposed = [];
@@ -233,24 +299,17 @@ final class MathArray
      */
     public static function flatten(array $matrix): array
     {
-        if (false === static::is2D($matrix)) {
-            return $matrix;
+        if (static::is2D($matrix)) {
+            return array_merge(... $matrix);
         }
 
-        $flatten = [];
-
-        for ($i = 0; $i < count($matrix); ++$i) {
-            $flatten = array_merge($flatten, $matrix[$i]);
-        }
-
-        return $flatten;
+        return $matrix;
     }
 
-    public static function is2D(array $matrix): bool
-    {
-        return count($matrix) && is_array($matrix[0]);
-    }
-
+    /**
+     * @param array $matrix
+     * @return string
+     */
     public static function toString(array $matrix): string
     {
         if (static::is2D($matrix)) {
@@ -264,57 +323,74 @@ final class MathArray
         return '['.join(' ', $matrix).']';
     }
 
-    private static function multiplyByScalar(array $matrix, $scalar): array
+    private static function is2D(array $matrix): bool
+    {
+        return count($matrix) && is_array($matrix[0]);
+    }
+
+    private static function m(array $matrix, $scalar): array
     {
         return static::map($matrix, function ($item) use ($scalar) {
             return $item * $scalar;
         });
     }
 
-    private static function divideByScalar(array $matrix, $scalar): array
+    private static function a(array $a1, $a2, int $sign): ?array
     {
-        return static::map($matrix, function ($item) use ($scalar) {
-            return $item / $scalar;
-        });
-    }
+        $a1Is2d = static::is2D($a1);
 
-    private static function subtractByScalar(array $matrix, $scalar): array
-    {
-        return static::map($matrix, function ($item) use ($scalar) {
-            return $item - $scalar;
-        });
-    }
-
-    private static function addByScalar(array $matrix, $scalar): array
-    {
-        return static::map($matrix, function ($item) use ($scalar) {
-            return $item + $scalar;
-        });
-    }
-
-    private static function multiply2DWithTransposed(array $a, array $b): array
-    {
-        $multiplied = [];
-
-        for ($i = 0; $i < count($a); ++$i) {
-            $multiplied[$i] = static::multiply1DWithTransposed($a[$i], $b);
+        if (is_numeric($a2)) {
+            $a2 = array_fill(0, $a1Is2d ? count($a1[0]) : count($a1), $a2);
         }
 
-        return $multiplied;
-    }
-
-    private static function multiply1DWithTransposed(array $vector, $matrix): array
-    {
-        $multiplied = [];
-
-        for ($i = 0; $i < count($matrix); ++$i) {
-            $multiplied[$i] = 0;
-
-            for ($j = 0; $j < count($matrix[$i]); ++$j) {
-                $multiplied[$i] += $vector[$j] * $matrix[$i][$j];
-            }
+        if (false === is_array($a2)) {
+            return null;
         }
 
-        return $multiplied;
+        $a2Is2d = static::is2D($a2);
+
+        if (false === $a1Is2d && false === $a2Is2d) {
+            return static::sum($a1, $a2, $sign);
+        }
+
+        if (false === $a1Is2d) {
+            $a1 = array_fill(0, count($a2), $a1);
+        }
+
+        if (false === $a2Is2d) {
+            $a2 = array_fill(0, count($a1), $a2);
+        }
+
+        if (count($a1) !== count($a2) || count($a1[0]) !== count($a2[0])) {
+            return null;
+        }
+
+        $result = [];
+
+        for ($i = 0; $i < count($a1); ++$i) {
+            $result[$i] = static::sum($a1[$i], $a2[$i], $sign);
+        }
+
+        return $result;
+    }
+
+    private static function sum(array $a1, array $a2, int $sign): array
+    {
+        $result = [];
+
+        for ($i = 0; $i < count($a1); ++$i) {
+            $result[$i] = $a1[$i] + $sign * $a2[$i];
+        }
+
+        return $result;
+    }
+
+    private static function fill(int $n, ?int $m, $value): array
+    {
+        if ($m) {
+            $value = array_fill(0, $m, $value);
+        }
+
+        return array_fill(0, $n, $value);
     }
 }
