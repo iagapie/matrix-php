@@ -159,7 +159,7 @@ class M
     public function divide($b): self
     {
         if ($b instanceof self) {
-            $b->toArray();
+            $b = $b->toArray();
         }
 
         if ($matrix = MathArray::divide($this->matrix, $b)) {
@@ -177,7 +177,7 @@ class M
     public function subtract($b): self
     {
         if ($b instanceof self) {
-            $b->toArray();
+            $b = $b->toArray();
         }
 
         if ($matrix = MathArray::subtract($this->matrix, $b)) {
@@ -195,7 +195,7 @@ class M
     public function add($b): self
     {
         if ($b instanceof self) {
-            $b->toArray();
+            $b = $b->toArray();
         }
 
         if ($matrix = MathArray::add($this->matrix, $b)) {
