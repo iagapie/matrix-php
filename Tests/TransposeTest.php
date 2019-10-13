@@ -7,8 +7,8 @@
 
 declare(strict_types=1);
 
-use IA\M;
-use IA\MathArray;
+use IA\Matrix\ImmutableMatrix;
+use IA\Matrix\MatrixException;
 use PHPUnit\Framework\TestCase;
 
 class TransposeTest extends TestCase
@@ -46,23 +46,11 @@ class TransposeTest extends TestCase
      *
      * @param array $matrix
      * @param array $expected
+     * @throws MatrixException
      */
-    public function testMathArray(array $matrix, array $expected): void
+    public function testMatrix(array $matrix, array $expected): void
     {
-        $actual = MathArray::transpose($matrix);
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * @dataProvider provider
-     *
-     * @param array $matrix
-     * @param array $expected
-     * @throws \IA\MatrixException
-     */
-    public function testM(array $matrix, array $expected): void
-    {
-        $m = new M($matrix);
+        $m = new ImmutableMatrix($matrix);
 
         $actual = $m->transpose()->toArray();
 

@@ -7,8 +7,8 @@
 
 declare(strict_types=1);
 
-use IA\M;
-use IA\MathArray;
+use IA\Matrix\ImmutableMatrix;
+use IA\Matrix\MatrixException;
 use PHPUnit\Framework\TestCase;
 
 class AddTest extends TestCase
@@ -60,26 +60,12 @@ class AddTest extends TestCase
      *
      * @param array $matrix
      * @param mixed $b
-     * @param mixed $expected
+     * @param array $expected
+     * @throws MatrixException
      */
-    public function testMathArray(array $matrix, $b, $expected): void
+    public function testMatrix(array $matrix, $b, array $expected): void
     {
-        $actual = MathArray::add($matrix, $b);
-
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * @dataProvider provider
-     *
-     * @param array $matrix
-     * @param mixed $b
-     * @param mixed $expected
-     * @throws \IA\MatrixException
-     */
-    public function testM(array $matrix, $b, $expected): void
-    {
-        $m = new M($matrix);
+        $m = new ImmutableMatrix($matrix);
 
         $actual = $m->add($b)->toArray();
 

@@ -7,8 +7,8 @@
 
 declare(strict_types=1);
 
-use IA\M;
-use IA\MathArray;
+use IA\Matrix\ImmutableMatrix;
+use IA\Matrix\MatrixException;
 use PHPUnit\Framework\TestCase;
 
 class ZerosTest extends TestCase
@@ -38,37 +38,19 @@ class ZerosTest extends TestCase
             [0, 0, 0],
         ];
 
-        yield [
-            3,
-            [0, 0, 0],
-        ];
-
         yield [[], []];
     }
 
     /**
      * @dataProvider provider
      *
-     * @param mixed $shape
+     * @param array $shape
      * @param array $expected
+     * @throws MatrixException
      */
-    public function testMathArray($shape, array $expected): void
+    public function testMatrix(array $shape, array $expected): void
     {
-        $actual = MathArray::zeros($shape);
-
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * @dataProvider provider
-     *
-     * @param mixed $shape
-     * @param array $expected
-     * @throws \IA\MatrixException
-     */
-    public function testM($shape, array $expected): void
-    {
-        $actual = M::zeros($shape)->toArray();
+        $actual = ImmutableMatrix::zeros($shape)->toArray();
 
         $this->assertEquals($expected, $actual);
     }

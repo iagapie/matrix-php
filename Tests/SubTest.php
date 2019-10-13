@@ -11,7 +11,7 @@ use IA\Matrix\ImmutableMatrix;
 use IA\Matrix\MatrixException;
 use PHPUnit\Framework\TestCase;
 
-class DotTest extends TestCase
+class SubTest extends TestCase
 {
     /**
      * @return iterable
@@ -21,37 +21,37 @@ class DotTest extends TestCase
         yield [
             [[-2, 2, -3], [-1, 1, 3], [2, 0, -1]],
             3,
-            [[-6, 6, -9], [-3, 3, 9], [6, 0, -3]],
+            [[-5, -1, -6], [-4, -2, 0], [-1, -3, -4]],
         ];
 
         yield [
             [[-2, 2, -3], [-1, 1, 3], [2, 0, -1]],
             [1, 2, 1],
-            [-1, 4, 1],
+            [[-3, 0, -4], [-2, -1, 2], [1, -2, -2]],
         ];
 
         yield [
             [1, 2, 1],
             [[-2, 2, -3], [-1, 1, 3], [2, 0, -1]],
-            [-2, 4, 2],
+            [[3, 0, 4], [2, 1, -2], [-1, 2, 2]],
         ];
 
         yield [
             [1, 2, 1],
             [2, 3, 4],
-            [12],
+            [-1, -1, -3],
+        ];
+
+        yield [
+            [1, 2, 1],
+            6,
+            [-5, -4, -5],
         ];
 
         yield [
             [[-2, 2, -3], [-1, 1, 3], [2, 0, -1]],
             [[3, 4, 5], [12, 65, 2], [0, 1, 0]],
-            [[18, 119, -6], [9, 64, -3], [6, 7, 10]],
-        ];
-
-        yield [
-            [[-2, 2, -3], [-1, 1, 3], [2, 0, -1]],
-            [[3, 4], [12, 65], [0, 1]],
-            [[18, 119], [9, 64], [6, 7]]
+            [[-5, -2, -8], [-13, -64, 1], [2, -1, -1]],
         ];
     }
 
@@ -67,7 +67,7 @@ class DotTest extends TestCase
     {
         $m = new ImmutableMatrix($matrix);
 
-        $actual = $m->dot($b)->toArray();
+        $actual = $m->sub($b)->toArray();
 
         $this->assertEquals($expected, $actual);
     }

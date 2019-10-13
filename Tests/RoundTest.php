@@ -7,8 +7,8 @@
 
 declare(strict_types=1);
 
-use IA\M;
-use IA\MathArray;
+use IA\Matrix\ImmutableMatrix;
+use IA\Matrix\MatrixException;
 use PHPUnit\Framework\TestCase;
 
 class RoundTest extends TestCase
@@ -51,25 +51,11 @@ class RoundTest extends TestCase
      * @param array $matrix
      * @param int $precision
      * @param array $expected
+     * @throws MatrixException
      */
-    public function testMathArray(array $matrix, int $precision, array $expected): void
+    public function testMatrix(array $matrix, int $precision, array $expected): void
     {
-        $actual = MathArray::round($matrix, $precision);
-
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * @dataProvider provider
-     *
-     * @param array $matrix
-     * @param int $precision
-     * @param array $expected
-     * @throws \IA\MatrixException
-     */
-    public function testM(array $matrix, int $precision, array $expected): void
-    {
-        $m = new M($matrix);
+        $m = new ImmutableMatrix($matrix);
 
         $actual = $m->round($precision)->toArray();
 

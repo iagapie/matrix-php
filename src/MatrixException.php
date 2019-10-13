@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 
-namespace IA;
+namespace IA\Matrix;
 
 class MatrixException extends \Exception
 {

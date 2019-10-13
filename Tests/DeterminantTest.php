@@ -7,10 +7,9 @@
 
 declare(strict_types=1);
 
-use IA\M;
-use IA\MatrixException;
+use IA\Matrix\ImmutableMatrix;
+use IA\Matrix\MatrixException;
 use PHPUnit\Framework\TestCase;
-use IA\MathArray as MA;
 
 class DeterminantTest extends TestCase
 {
@@ -30,23 +29,11 @@ class DeterminantTest extends TestCase
      *
      * @param array $matrix
      * @param $expected
+     * @throws MatrixException
      */
-    public function testMathArray(array $matrix, int $expected): void
+    public function testMatrix(array $matrix, int $expected): void
     {
-        $actual = MA::determinant($matrix);
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * @dataProvider provider
-     *
-     * @param array $matrix
-     * @param $expected
-     * @throws \IA\MatrixException
-     */
-    public function testM(array $matrix, int $expected): void
-    {
-        $m = new M($matrix);
+        $m = ImmutableMatrix::from($matrix);
 
         $actual = $m->determinant();
 
@@ -54,11 +41,11 @@ class DeterminantTest extends TestCase
     }
 
     /**
-     * @throws \IA\MatrixException
+     * @throws MatrixException
      */
-    public function testMException(): void
+    public function testException(): void
     {
-        $m = new M([1, 2, 3]);
+        $m = ImmutableMatrix::from([1, 2, 3]);
 
         $this->expectException(MatrixException::class);
 

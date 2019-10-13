@@ -7,9 +7,8 @@
 
 declare(strict_types=1);
 
-use IA\M;
-use IA\MathArray as MA;
-use IA\MatrixException;
+use IA\Matrix\ImmutableMatrix;
+use IA\Matrix\MatrixException;
 use PHPUnit\Framework\TestCase;
 
 class InverseTest extends TestCase
@@ -45,27 +44,11 @@ class InverseTest extends TestCase
      *
      * @param array $matrix
      * @param array $expected
+     * @throws MatrixException
      */
-    public function testMathArray(array $matrix, array $expected): void
+    public function testMatrix(array $matrix, array $expected): void
     {
-        $inverse = MA::inverse($matrix);
-
-        $actual = $this->round($inverse);
-        $expected = $this->round($expected);
-
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * @dataProvider provider
-     *
-     * @param array $matrix
-     * @param array $expected
-     * @throws \IA\MatrixException
-     */
-    public function testM(array $matrix, array $expected): void
-    {
-        $m = new M($matrix);
+        $m = new ImmutableMatrix($matrix);
 
         $inverse = $m->inverse();
 
@@ -76,11 +59,11 @@ class InverseTest extends TestCase
     }
 
     /**
-     * @throws \IA\MatrixException
+     * @throws MatrixException
      */
-    public function testMException(): void
+    public function testException(): void
     {
-        $m = new M([1, 2, 3]);
+        $m = ImmutableMatrix::from([1, 2, 3]);
 
         $this->expectException(MatrixException::class);
 

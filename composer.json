@@ -15,10 +15,10 @@
   },
   "require-dev": {
     "phpunit/phpunit": "^8",
-    "php-coveralls/php-coveralls": "2.1.x-dev"
+    "php-coveralls/php-coveralls": "^2.0"
   },
   "autoload": {
-    "psr-4": { "IA\\": "" },
+    "psr-4": { "IA\\Matrix\\": "src/" },
     "exclude-from-classmap": [
       "/Tests/"
     ]

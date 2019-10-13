@@ -7,11 +7,11 @@
 
 declare(strict_types=1);
 
-use IA\M;
-use IA\MathArray;
+use IA\Matrix\ImmutableMatrix;
+use IA\Matrix\MatrixException;
 use PHPUnit\Framework\TestCase;
 
-class DivideTest extends TestCase
+class DivTest extends TestCase
 {
     /**
      * @return iterable
@@ -35,30 +35,13 @@ class DivideTest extends TestCase
      * @param array $matrix
      * @param mixed $b
      * @param mixed $expected
-     */
-    public function testMathArray(array $matrix, $b, $expected): void
-    {
-        $actual = MathArray::divide($matrix, $b);
-
-        $actual = $this->round($actual);
-        $expected = $this->round($expected);
-
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * @dataProvider provider
-     *
-     * @param array $matrix
-     * @param mixed $b
-     * @param mixed $expected
-     * @throws \IA\MatrixException
+     * @throws MatrixException
      */
     public function testM(array $matrix, $b, $expected): void
     {
-        $m = new M($matrix);
+        $m = new ImmutableMatrix($matrix);
 
-        $actual = $m->divide($b)->toArray();
+        $actual = $m->div($b)->toArray();
 
         $actual = $this->round($actual);
         $expected = $this->round($expected);
