@@ -11,7 +11,7 @@ Matrix PHP requires PHP >= 7.2.
 ## Installation
 
 ```
-composer require iagapie/matrix-php:dev-master
+composer require iagapie/matrix-php
 ```
 
 ## Simple example
