@@ -10,10 +10,102 @@ Matrix PHP requires PHP >= 7.2.
 
 ## Installation
 
-Currently this library is in the process of being developed, but You can install it with Composer:
-
 ```
 composer require iagapie/matrix-php:dev-master
+```
+
+## Simple example
+
+```php
+require_once __DIR__ . '/vendor/autoload.php';
+
+use IA\Matrix\ImmutableMatrix as M;
+use IA\Matrix\MatrixInterface;
+
+class NeuralNetwork
+{
+    private $w1;
+    private $w2;
+    private $z2;
+    private $z3;
+
+    public function __construct($inputSize = 2, $hiddenSize = 3, $outputSize = 1)
+    {
+        $this->w1 = M::randn([$inputSize, $hiddenSize]);
+        $this->w2 = M::randn([$hiddenSize, $outputSize]);
+    }
+
+    public function predict(MatrixInterface $x): MatrixInterface
+    {
+        return $this->forward($x);
+    }
+
+    public function train(MatrixInterface $x, MatrixInterface $y, int $epochs = 15000, bool $verbose = true): void
+    {
+        if ($verbose) {
+            print_r(sprintf("Training Input (scaled): \n%s\n", $x));
+            print_r(sprintf("Training Output: \n%s\n", $y));
+        }
+
+        for ($i = 0; $i < $epochs; ++$i) {
+            $o = $this->forward($x);
+            $this->backward($x, $y, $o);
+
+            if ($verbose) {
+                print_r(sprintf("\n# %s\n", $i));
+                print_r(sprintf("Predicted Output: \n%s\n", $o->__toString()));
+                $loss = $y->sub($o)->apply(function ($value) { return $value * $value; })->mean();
+                print_r(sprintf("Loss: \n%s\n", $loss));
+            }
+        }
+    }
+
+    private function forward(MatrixInterface $x): MatrixInterface
+    {
+        $z = $x->dot($this->w1);
+        $this->z2 = $this->sigmoid($z);
+        $this->z3 = $this->z2->dot($this->w2);
+        $o = $this->sigmoid($this->z3);
+        return $o;
+    }
+
+    private function backward(MatrixInterface $x, MatrixInterface $y, MatrixInterface $o): void
+    {
+        $error = $y->sub($o);
+        $delta = $error->mul($this->sigmoidPrime($o));
+        $z2Error = $delta->dot($this->w2->transpose());
+        $z2Delta = $z2Error->mul($this->sigmoidPrime($this->z2));
+        $this->w1 = $this->w1->add($x->transpose()->dot($z2Delta));
+        $this->w2 = $this->w2->add($this->z2->transpose()->dot($delta));
+    }
+
+    private function sigmoid(MatrixInterface $s): MatrixInterface
+    {
+        return $s->apply(function ($value) {
+            return 1 / (1 + exp(-$value));
+        });
+    }
+
+    private function sigmoidPrime(MatrixInterface $s): MatrixInterface
+    {
+        return $s->apply(function ($value) {
+            return $value * (1 -$value);
+        });
+    }
+}
+
+$x = M::from([[0.4, 0.9], [0.2, 0.5], [0.6, 0.6]]);
+$y = M::from([[92], [86], [89]])->div(100);
+
+$nn = new NeuralNetwork();
+$nn->train($x, $y);
+
+$xp = M::from([[1., 1.]]);
+$predicted = $nn->predict($xp);
+
+print_r("\nPredicted data based on trained weights:\n");
+print_r(sprintf("Input (scaled):\n%s\n", $xp->__toString()));
+print_r(sprintf("Output:\n%s\n", $predicted->__toString()));
 ```
 
 <!---
