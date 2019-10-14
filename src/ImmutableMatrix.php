@@ -334,14 +334,16 @@ class ImmutableMatrix implements MatrixInterface
     public function transpose(): MatrixInterface
     {
         if (null === $this->transposed) {
-            $this->transposed = $this->matrix;
-
             if ($this->columns) {
+                $this->transposed = [];
+
                 foreach ($this->matrix as $i => $row) {
                     foreach ($row as $j => $item) {
                         $this->transposed[$j][$i] = $item;
                     }
                 }
+            } else {
+                $this->transposed = $this->matrix;
             }
         }
 
