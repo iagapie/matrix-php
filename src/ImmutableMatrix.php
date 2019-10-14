@@ -436,6 +436,19 @@ class ImmutableMatrix implements MatrixInterface
     }
 
     /**
+     * @return float
+     * @throws MatrixException
+     */
+    public function mean(): float
+    {
+        if ($this->isEmpty()) {
+            throw new MatrixException('Matrix is empty.');
+        }
+
+        return $this->arrayTotal($this->matrix) / $this->size();
+    }
+
+    /**
      * @return array
      */
     public function flatten(): array
@@ -582,19 +595,22 @@ class ImmutableMatrix implements MatrixInterface
     /**
      * @param array $matrix
      * @param callable $callback
+     * @param array $args
      * @return array
      */
-    protected function map(array $matrix, callable $callback): array
+    protected function map(array $matrix, callable $callback, array $args = []): array
     {
         $data = [];
 
         foreach ($matrix as $i => $item) {
+            $params = $args;
+            $params[] = $i;
+
             if (is_array($item)) {
-                foreach ($item as $j => $el) {
-                    $data[$i][$j] = call_user_func($callback, $el, $i, $j);
-                }
+                $data[$i] = $this->map($item, $callback, $params);
             } else {
-                $data[$i] = call_user_func($callback, $item, $i);
+                array_unshift($params, $item);
+                $data[$i] = call_user_func_array($callback, $params);
             }
         }
 
@@ -648,7 +664,7 @@ class ImmutableMatrix implements MatrixInterface
         $a = $this->matrix;
 
         if ($this->is1d() && false === $bIs2d) {
-            $matrix = $this->sum1d($a, $b, $sign);
+            $matrix = $this->sum1d1d($a, $b, $sign);
         } else {
             if ($this->is1d()) {
                 $a = static::arrayOf(count($b), $a);
@@ -665,7 +681,7 @@ class ImmutableMatrix implements MatrixInterface
             $matrix = [];
 
             foreach ($a as $i => $item) {
-                $matrix[$i] = $this->sum1d($item, $b[$i], $sign);
+                $matrix[$i] = $this->sum1d1d($item, $b[$i], $sign);
             }
         }
 
@@ -678,7 +694,7 @@ class ImmutableMatrix implements MatrixInterface
      * @param float $sign
      * @return array
      */
-    protected function sum1d(array $a, array $b, float $sign): array
+    protected function sum1d1d(array $a, array $b, float $sign): array
     {
         $matrix = [];
 
@@ -687,6 +703,21 @@ class ImmutableMatrix implements MatrixInterface
         }
 
         return $matrix;
+    }
+
+    /**
+     * @param array $data
+     * @return float
+     */
+    protected function arrayTotal(array $data): float
+    {
+        $sum = 0.0;
+
+        foreach ($data as $value) {
+            $sum += is_array($value) ? $this->arrayTotal($value) : $value;
+        }
+
+        return $sum;
     }
 
     /**

@@ -78,6 +78,12 @@ interface MatrixInterface
     public function determinant(): float;
 
     /**
+     * @return float
+     * @throws MatrixException
+     */
+    public function mean(): float;
+
+    /**
      * @return array
      */
     public function flatten(): array;
