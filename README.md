@@ -43,8 +43,8 @@ class NeuralNetwork
     public function train(MatrixInterface $x, MatrixInterface $y, int $epochs = 15000, bool $verbose = true): void
     {
         if ($verbose) {
-            print_r(sprintf("Training Input (scaled): \n%s\n", $x));
-            print_r(sprintf("Training Output: \n%s\n", $y));
+            printf("Training Input (scaled): \n%s\n", $x);
+            printf("Training Output: \n%s\n", $y);
         }
 
         for ($i = 0; $i < $epochs; ++$i) {
@@ -52,10 +52,10 @@ class NeuralNetwork
             $this->backward($x, $y, $o);
 
             if ($verbose) {
-                print_r(sprintf("\n# %s\n", $i));
-                print_r(sprintf("Predicted Output: \n%s\n", $o->__toString()));
+                printf("\n# %s\n", $i);
+                printf("Predicted Output: \n%s\n", $o->__toString());
                 $loss = $y->sub($o)->apply(function ($value) { return $value * $value; })->mean();
-                print_r(sprintf("Loss: \n%s\n", $loss));
+                printf("Loss: \n%s\n", $loss);
             }
         }
     }
@@ -103,9 +103,9 @@ $nn->train($x, $y);
 $xp = M::from([[1., 1.]]);
 $predicted = $nn->predict($xp);
 
-print_r("\nPredicted data based on trained weights:\n");
-print_r(sprintf("Input (scaled):\n%s\n", $xp->__toString()));
-print_r(sprintf("Output:\n%s\n", $predicted->__toString()));
+printf("\nPredicted data based on trained weights:\n");
+printf("Input (scaled):\n%s\n", $xp->__toString());
+printf("Output:\n%s\n", $predicted->__toString());
 ```
 
 <!---
