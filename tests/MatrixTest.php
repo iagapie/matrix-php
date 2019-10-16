@@ -129,7 +129,7 @@ class MatrixTest extends TestCase
     /**
      * @throws MatrixException
      */
-    public function testisSingular(): void
+    public function testIsSingular(): void
     {
         $data = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]];
         $matrix = new ImmutableMatrix($data);

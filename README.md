@@ -20,7 +20,7 @@ composer require iagapie/matrix-php
 require_once __DIR__ . '/vendor/autoload.php';
 
 use IA\Matrix\ImmutableMatrix as M;
-use IA\Matrix\MatrixInterface;
+use IA\Matrix\MatrixInterface as Mi;
 
 class NeuralNetwork
 {
@@ -35,12 +35,12 @@ class NeuralNetwork
         $this->w2 = M::randn([$hiddenSize, $outputSize]);
     }
 
-    public function predict(MatrixInterface $x): MatrixInterface
+    public function predict(Mi $x): Mi
     {
         return $this->forward($x);
     }
 
-    public function train(MatrixInterface $x, MatrixInterface $y, int $epochs = 15000, bool $verbose = true): void
+    public function train(Mi $x, Mi $y, int $epochs = 15000, bool $verbose = true): void
     {
         if ($verbose) {
             printf("Training Input (scaled): \n%s\n", $x);
@@ -60,7 +60,7 @@ class NeuralNetwork
         }
     }
 
-    private function forward(MatrixInterface $x): MatrixInterface
+    private function forward(Mi $x): Mi
     {
         $z = $x->dot($this->w1);
         $this->z2 = $this->sigmoid($z);
@@ -69,7 +69,7 @@ class NeuralNetwork
         return $o;
     }
 
-    private function backward(MatrixInterface $x, MatrixInterface $y, MatrixInterface $o): void
+    private function backward(Mi $x, Mi $y, Mi $o): void
     {
         $error = $y->sub($o);
         $delta = $error->mul($this->sigmoidPrime($o));
@@ -79,14 +79,14 @@ class NeuralNetwork
         $this->w2 = $this->w2->add($this->z2->transpose()->dot($delta));
     }
 
-    private function sigmoid(MatrixInterface $s): MatrixInterface
+    private function sigmoid(Mi $s): Mi
     {
         return $s->apply(function ($value) {
             return 1 / (1 + exp(-$value));
         });
     }
 
-    private function sigmoidPrime(MatrixInterface $s): MatrixInterface
+    private function sigmoidPrime(Mi $s): Mi
     {
         return $s->apply(function ($value) {
             return $value * (1 -$value);
