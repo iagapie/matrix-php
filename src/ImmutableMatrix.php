@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Copyright © 2019. All rights reserved.
  *
@@ -14,32 +15,32 @@ class ImmutableMatrix implements MatrixInterface
     /**
      * @var array
      */
-    protected $matrix;
+    protected $matrix = [];
 
     /**
      * @var int
      */
-    protected $rows;
+    protected $rows = 0;
 
     /**
      * @var null|int
      */
-    protected $columns;
+    protected $columns = null;
 
     /**
      * @var null|array
      */
-    protected $transposed;
+    protected $transposed = null;
 
     /**
      * @var null|array
      */
-    protected $inverted;
+    protected $inverted = null;
 
     /**
      * @var null|float
      */
-    protected $determinant;
+    protected $determinant = null;
 
     /**
      * ImmutableMatrix constructor.
@@ -47,13 +48,15 @@ class ImmutableMatrix implements MatrixInterface
      * @param array $matrix
      * @throws MatrixException
      */
-    public function __construct(array $matrix)
+    public function __construct(array $matrix = [])
     {
         $this->matrix = $matrix;
         $this->rows = count($matrix);
 
         if ($this->rows && is_array($matrix[0])) {
             $this->columns = count($matrix[0]);
+        } else {
+            $this->transposed = $matrix;
         }
 
         $this->validate();
@@ -66,7 +69,7 @@ class ImmutableMatrix implements MatrixInterface
      */
     public static function from(array $matrix): MatrixInterface
     {
-        return new self($matrix);
+        return new static($matrix);
     }
 
     /**
@@ -79,20 +82,17 @@ class ImmutableMatrix implements MatrixInterface
      */
     public static function eye(array $shape, int $k = 0): MatrixInterface
     {
-        if (empty($shape)) {
-            return new self([]);
+        if (isset($shape[0]) && false == isset($shape[1])) {
+            $shape[1] = $shape[0];
         }
 
-        $shape[1] = (int) ($shape[1] ?? $shape[0]);
-
-        $data = static::arrayOf($shape[1], 0);
-        $data = static::arrayOf($shape[0], $data);
-
-        for ($i = (-$k + abs($k)) / 2, $j = ($k + abs($k)) / 2; $i < $shape[0] && $j < $shape[1]; ++$i, ++$j) {
-            $data[$i][$j] = 1;
+        if ($data = static::arrayByShape($shape, 0)) {
+            for ($i = (-$k + abs($k)) / 2, $j = ($k + abs($k)) / 2; $i < $shape[0] && $j < $shape[1]; ++$i, ++$j) {
+                $data[$i][$j] = 1;
+            }
         }
 
-        return new self($data);
+        return new static($data);
     }
 
     /**
@@ -102,21 +102,8 @@ class ImmutableMatrix implements MatrixInterface
      */
     public static function zeros(array $shape): MatrixInterface
     {
-        if (empty($shape)) {
-            return new self([]);
-        }
-
-        $rows = $shape[0];
-        $columns = $shape[1] ?? 0;
-        $data = 0;
-
-        if ($columns) {
-            $data = static::arrayOf($columns, $data);
-        }
-
-        $data = static::arrayOf($rows, $data);
-
-        return new self($data);
+        $data = static::arrayByShape($shape, 0);
+        return new static($data);
     }
 
     /**
@@ -141,7 +128,6 @@ class ImmutableMatrix implements MatrixInterface
         return static::zeros($shape)->apply(function () {
             $x = rand() / getrandmax();
             $y = rand() / getrandmax();
-
             return sqrt(-2 * log($x)) * cos(2 * pi() * $y);
         });
     }
@@ -183,7 +169,7 @@ class ImmutableMatrix implements MatrixInterface
             $b = $b->toArray();
         }
 
-        if (false === is_array($b)) {
+        if (false == is_array($b)) {
             throw new MatrixException('Argument "$b" is not valid.');
         }
 
@@ -201,17 +187,10 @@ class ImmutableMatrix implements MatrixInterface
         } else {
             $a = $this->matrix;
 
-            if ($this->is1d()) {
-                $a = static::arrayOf(count($b), $a);
-            }
+            $a = $this->to2d(count($b), $a);
+            $b = $this->to2d($this->rows, $b);
 
-            if (false === $bIs2d) {
-                $b = static::arrayOf($this->rows, $b);
-            }
-
-            if (count($a) !== count($b) || count($a[0]) !== count($b[0])) {
-                throw new MatrixException(sprintf('Shapes (%s,%s) and (%s,%s) not aligned.', count($a), count($a[0]), count($b), count($b[0])));
-            }
+            $this->validateShapesAligned($a, $b);
 
             foreach ($a as $i => $d1) {
                 foreach ($d1 as $j => $value) {
@@ -220,7 +199,7 @@ class ImmutableMatrix implements MatrixInterface
             }
         }
 
-        return new self($matrix);
+        return new static($matrix);
     }
 
     /**
@@ -259,7 +238,7 @@ class ImmutableMatrix implements MatrixInterface
             $b = $b->toArray();
         }
 
-        if (false === is_array($b)) {
+        if (false == is_array($b)) {
             throw new MatrixException('Argument "$b" is not valid.');
         }
 
@@ -277,7 +256,13 @@ class ImmutableMatrix implements MatrixInterface
         $columnsA = count($a[0]);
 
         if ($columnsA !== count($b)) {
-            throw new MatrixException(sprintf('Shapes (%s,%s) and (%s,%s) not aligned.', count($a), $columnsA, count($b), count($b[0])));
+            throw new MatrixException(sprintf(
+                'Shapes (%s,%s) and (%s,%s) not aligned.',
+                count($a),
+                $columnsA,
+                count($b),
+                count($b[0])
+            ));
         }
 
         $rowsA = count($a);
@@ -301,7 +286,7 @@ class ImmutableMatrix implements MatrixInterface
             $matrix = array_merge(... $matrix);
         }
 
-        return new self($matrix);
+        return new static($matrix);
     }
 
     /**
@@ -312,8 +297,7 @@ class ImmutableMatrix implements MatrixInterface
     public function apply(callable $callback): MatrixInterface
     {
         $matrix = $this->map($this->matrix, $callback);
-
-        return new self($matrix);
+        return new static($matrix);
     }
 
     /**
@@ -334,20 +318,16 @@ class ImmutableMatrix implements MatrixInterface
     public function transpose(): MatrixInterface
     {
         if (null === $this->transposed) {
-            if ($this->columns) {
-                $this->transposed = [];
+            $this->transposed = [];
 
-                foreach ($this->matrix as $i => $row) {
-                    foreach ($row as $j => $item) {
-                        $this->transposed[$j][$i] = $item;
-                    }
+            foreach ($this->matrix as $i => $row) {
+                foreach ($row as $j => $item) {
+                    $this->transposed[$j][$i] = $item;
                 }
-            } else {
-                $this->transposed = $this->matrix;
             }
         }
 
-        return new self($this->transposed);
+        return new static($this->transposed);
     }
 
     /**
@@ -361,6 +341,7 @@ class ImmutableMatrix implements MatrixInterface
             $this->validateIsSingular();
 
             $matrix = $this->matrix;
+
             $eye = static::eye($this->shape())->toArray();
 
             for ($i = 0; $i < $this->rows; ++$i) {
@@ -386,7 +367,7 @@ class ImmutableMatrix implements MatrixInterface
             $this->inverted = $eye;
         }
 
-        return new self($this->inverted);
+        return new static($this->inverted);
     }
 
     /**
@@ -445,7 +426,7 @@ class ImmutableMatrix implements MatrixInterface
             throw new MatrixException('Matrix is empty.');
         }
 
-        return $this->arrayTotal($this->matrix) / $this->size();
+        return $this->total($this->matrix) / $this->size();
     }
 
     /**
@@ -486,7 +467,7 @@ class ImmutableMatrix implements MatrixInterface
      */
     public function size(): int
     {
-        return $this->columns ? $this->rows * $this->columns : $this->rows;
+        return $this->rows * ($this->columns ?: 1);
     }
 
     /**
@@ -577,6 +558,24 @@ class ImmutableMatrix implements MatrixInterface
     }
 
     /**
+     * @param array $a
+     * @param array $b
+     * @throws MatrixException
+     */
+    protected function validateShapesAligned(array $a, array $b): void
+    {
+        if (count($a) !== count($b) || count($a[0]) !== count($b[0])) {
+            throw new MatrixException(sprintf(
+                'Shapes (%s,%s) and (%s,%s) not aligned.',
+                count($a),
+                count($a[0]),
+                count($b),
+                count($b[0])
+            ));
+        }
+    }
+
+    /**
      * @return bool
      */
     protected function is1d(): bool
@@ -595,7 +594,7 @@ class ImmutableMatrix implements MatrixInterface
     /**
      * @param array $matrix
      * @param callable $callback
-     * @param array $args
+     * @param array<int, mixed> $args
      * @return array
      */
     protected function map(array $matrix, callable $callback, array $args = []): array
@@ -615,27 +614,6 @@ class ImmutableMatrix implements MatrixInterface
         }
 
         return $data;
-    }
-
-    /**
-     * @return float
-     */
-    protected function random(): float
-    {
-        return rand() / getrandmax();
-    }
-
-    /**
-     * @param float $mean
-     * @param float $sd
-     * @return float
-     */
-    protected function normalRandom(float $mean = 0, float $sd = 1): float
-    {
-        $x = $this->random();
-        $y = $this->random();
-
-        return sqrt(-2 * log($x)) * cos(2 * pi() * $y) * $sd + $mean;
     }
 
     /**
@@ -666,17 +644,10 @@ class ImmutableMatrix implements MatrixInterface
         if ($this->is1d() && false === $bIs2d) {
             $matrix = $this->sum1d1d($a, $b, $sign);
         } else {
-            if ($this->is1d()) {
-                $a = static::arrayOf(count($b), $a);
-            }
+            $a = $this->to2d(count($b), $a);
+            $b = $this->to2d($this->rows, $b);
 
-            if (false === $bIs2d) {
-                $b = static::arrayOf($this->rows, $b);
-            }
-
-            if (count($a) !== count($b) || count($a[0]) !== count($b[0])) {
-                throw new MatrixException('Argument "$b" is not valid.');
-            }
+            $this->validateShapesAligned($a, $b);
 
             $matrix = [];
 
@@ -685,7 +656,7 @@ class ImmutableMatrix implements MatrixInterface
             }
         }
 
-        return new self($matrix);
+        return new static($matrix);
     }
 
     /**
@@ -709,15 +680,29 @@ class ImmutableMatrix implements MatrixInterface
      * @param array $data
      * @return float
      */
-    protected function arrayTotal(array $data): float
+    protected function total(array $data): float
     {
         $sum = 0.0;
 
         foreach ($data as $value) {
-            $sum += is_array($value) ? $this->arrayTotal($value) : $value;
+            $sum += is_array($value) ? $this->total($value) : $value;
         }
 
         return $sum;
+    }
+
+    /**
+     * @param int $rows
+     * @param array $data
+     * @return array
+     */
+    protected function to2d(int $rows, array $data): array
+    {
+        if (isset($data[0]) && false == is_array($data[0])) {
+            return static::arrayOf($rows, $data);
+        }
+
+        return $data;
     }
 
     /**
@@ -734,6 +719,22 @@ class ImmutableMatrix implements MatrixInterface
         }
 
         return $data;
+    }
+
+    /**
+     * @param array $shape
+     * @param mixed $value
+     * @return array
+     */
+    protected static function arrayByShape(array $shape, $value): array
+    {
+        $data = $value;
+
+        for ($i = count($shape) - 1; $i >= 0; --$i) {
+            $data = static::arrayOf($shape[$i], $data);
+        }
+
+        return $data ?: [];
     }
 
     /**

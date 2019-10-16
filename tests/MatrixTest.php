@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Copyright © 2019. All rights reserved.
  *
@@ -6,6 +7,8 @@
  */
 
 declare(strict_types=1);
+
+namespace IA\Matrix\Tests;
 
 use IA\Matrix\ImmutableMatrix;
 use IA\Matrix\MatrixException;

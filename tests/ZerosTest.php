@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Copyright © 2019. All rights reserved.
  *
@@ -7,11 +8,13 @@
 
 declare(strict_types=1);
 
+namespace IA\Matrix\Tests;
+
 use IA\Matrix\ImmutableMatrix;
 use IA\Matrix\MatrixException;
 use PHPUnit\Framework\TestCase;
 
-class FlattenTest extends TestCase
+class ZerosTest extends TestCase
 {
     /**
      * @return iterable
@@ -19,13 +22,23 @@ class FlattenTest extends TestCase
     public function provider(): iterable
     {
         yield [
-            [[-2, 2, -3], [-1, 1, 3], [2, 0, -1]],
-            [-2, 2, -3, -1, 1, 3, 2, 0, -1]
+            [3, 3],
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
         ];
 
         yield [
-            [-2, 2, -3, -1, 1, 3, 2, 0, -1],
-            [-2, 2, -3, -1, 1, 3, 2, 0, -1]
+            [3, 2],
+            [[0, 0], [0, 0], [0, 0]],
+        ];
+
+        yield [
+            [1, 3],
+            [[0, 0, 0]],
+        ];
+
+        yield [
+            [3],
+            [0, 0, 0],
         ];
 
         yield [[], []];
@@ -34,15 +47,13 @@ class FlattenTest extends TestCase
     /**
      * @dataProvider provider
      *
-     * @param array $matrix
+     * @param array $shape
      * @param array $expected
      * @throws MatrixException
      */
-    public function testMatrix(array $matrix, array $expected): void
+    public function testMatrix(array $shape, array $expected): void
     {
-        $m = new ImmutableMatrix($matrix);
-
-        $actual = $m->flatten();
+        $actual = ImmutableMatrix::zeros($shape)->toArray();
 
         $this->assertEquals($expected, $actual);
     }

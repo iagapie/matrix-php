@@ -6,9 +6,11 @@ matrix:
   include:
     - os: linux
       php: '7.2'
+      env: STATIC_ANALYSIS="true"
 
     - os: linux
       php: '7.3'
+      env: STATIC_ANALYSIS="true"
 
 cache:
   directories:
@@ -23,6 +25,8 @@ install:
 
 script:
   - vendor/bin/phpunit
+  - if [[ $STATIC_ANALYSIS != "" ]]; then composer check-cs; fi
+  - if [[ $STATIC_ANALYSIS != "" ]]; then composer phpstan; fi
 
 after_success:
   - travis_retry php vendor/bin/php-coveralls -v

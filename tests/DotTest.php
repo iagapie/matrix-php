@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Copyright © 2019. All rights reserved.
  *
@@ -7,11 +8,13 @@
 
 declare(strict_types=1);
 
+namespace IA\Matrix\Tests;
+
 use IA\Matrix\ImmutableMatrix;
 use IA\Matrix\MatrixException;
 use PHPUnit\Framework\TestCase;
 
-class MulTest extends TestCase
+class DotTest extends TestCase
 {
     /**
      * @return iterable
@@ -27,25 +30,31 @@ class MulTest extends TestCase
         yield [
             [[-2, 2, -3], [-1, 1, 3], [2, 0, -1]],
             [1, 2, 1],
-            [[-2, 4, -3], [-1, 2, 3], [2, 0, -1]],
+            [-1, 4, 1],
         ];
 
         yield [
             [1, 2, 1],
             [[-2, 2, -3], [-1, 1, 3], [2, 0, -1]],
-            [[-2, 4, -3], [-1, 2, 3], [2, 0, -1]],
+            [-2, 4, 2],
         ];
 
         yield [
             [1, 2, 1],
             [2, 3, 4],
-            [2, 6, 4],
+            [12],
         ];
 
         yield [
             [[-2, 2, -3], [-1, 1, 3], [2, 0, -1]],
             [[3, 4, 5], [12, 65, 2], [0, 1, 0]],
-            [[-6, 8, -15], [-12, 65, 6], [0, 0, 0]],
+            [[18, 119, -6], [9, 64, -3], [6, 7, 10]],
+        ];
+
+        yield [
+            [[-2, 2, -3], [-1, 1, 3], [2, 0, -1]],
+            [[3, 4], [12, 65], [0, 1]],
+            [[18, 119], [9, 64], [6, 7]]
         ];
     }
 
@@ -61,7 +70,7 @@ class MulTest extends TestCase
     {
         $m = new ImmutableMatrix($matrix);
 
-        $actual = $m->mul($b)->toArray();
+        $actual = $m->dot($b)->toArray();
 
         $this->assertEquals($expected, $actual);
     }

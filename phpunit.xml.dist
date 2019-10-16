@@ -17,7 +17,7 @@
 
     <testsuites>
         <testsuite name="Matrix library Test Suite">
-            <directory>./Tests/</directory>
+            <directory>./tests/</directory>
         </testsuite>
     </testsuites>
 
@@ -27,7 +27,7 @@
             <exclude>
                 <file>./src/MatrixException.php</file>
                 <file>./src/MatrixInterface.php</file>
-                <directory>./Tests</directory>
+                <directory>./tests</directory>
                 <directory>./vendor</directory>
             </exclude>
         </whitelist>
